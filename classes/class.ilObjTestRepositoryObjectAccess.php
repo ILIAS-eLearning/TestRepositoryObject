@@ -1,5 +1,7 @@
 <?php
+
 include_once("./Services/Repository/classes/class.ilObjectPluginAccess.php");
+require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/TestRepositoryObject/classes/class.ilObjTestRepositoryObject.php");
 
 /**
  * Please do not create instances of large application classes
@@ -9,7 +11,7 @@ include_once("./Services/Repository/classes/class.ilObjectPluginAccess.php");
  * @author					Oskar Truffer <ot@studer-raimann.ch>
  * @version $Id$
  */
-class ilObjTestRepositoryObjectAccess extends ilObjectPluginAccess
+class ilObjTestRepositoryObjectAccess extends ilObjectPluginAccess implements ilConditionHandling
 {
 
 	/**
@@ -64,6 +66,36 @@ class ilObjTestRepositoryObjectAccess extends ilObjectPluginAccess
 		return (boolean) $rec["is_online"];
 	}
 
+	/**
+	 * Returns an array with valid operators for the specific object type
+	 */
+	public static function getConditionOperators() {
+		include_once './Services/AccessControl/classes/class.ilConditionHandler.php';
+		return array(
+			ilConditionHandler::OPERATOR_FAILED,
+			ilConditionHandler::OPERATOR_PASSED
+		);
+	}
+
+	/**
+	 * check condition for a specific user and object
+	 * @param type $a_trigger_obj_id
+	 * @param type $a_operator
+	 * @param type $a_value
+	 * @param type $a_usr_id
+	 * @return bool
+	 */
+	public static function checkCondition($a_trigger_obj_id, $a_operator, $a_value, $a_usr_id) {
+		$ref_id = array_shift(ilObject::_getAllReferences($a_trigger_obj_id));
+		$object = new ilObjTestRepositoryObject($ref_id);
+		switch ($a_operator) {
+			case ilConditionHandler::OPERATOR_PASSED:
+				return $object->getLPStatusForUser($a_usr_id) == ilLPStatus::LP_STATUS_COMPLETED_NUM;
+			case ilConditionHandler::OPERATOR_FAILED:
+				return $object->getLPStatusForUser($a_usr_id) == ilLPStatus::LP_STATUS_FAILED_NUM;
+		}
+		return false;
+	}
 }
 
 ?>

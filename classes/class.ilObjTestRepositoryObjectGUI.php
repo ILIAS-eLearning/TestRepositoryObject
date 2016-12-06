@@ -73,7 +73,7 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 				break;
 
 			case "showContent":   // list all commands that need read permission here
-			case "setStatusToPassed":
+			case "setStatusToCompleted":
 			case "setStatusToFailed":
 			case "setStatusToInProgress":
 			case "setStatusToNotAttempted":
@@ -202,8 +202,8 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 		$template->setVariable("ONLINE_STATUS", $object->isOnline()?"Online":"Offline");
 		$template->setVariable("ONLINE_COLOR", $object->isOnline()?"green":"red");
 
-		$template->setVariable("SET_PASSED", $this->ctrl->getLinkTarget($this, "setStatusToPassed"));
-		$template->setVariable("SET_PASSED_TXT", $this->plugin->txt("set_passed"));
+		$template->setVariable("SET_COMPLETED", $this->ctrl->getLinkTarget($this, "setStatusToCompleted"));
+		$template->setVariable("SET_COMPLETED_TXT", $this->plugin->txt("set_completed"));
 
 		$template->setVariable("SET_NOT_ATTEMPTED", $this->ctrl->getLinkTarget($this, "setStatusToNotAttempted"));
 		$template->setVariable("SET_NOT_ATTEMPTED_TXT", $this->plugin->txt("set_not_attempted"));
@@ -256,7 +256,7 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 		return;
 	}
 
-	private function setStatusToPassed() {
+	private function setStatusToCompleted() {
 		$this->setStatusAndRedirect(ilLPStatus::LP_STATUS_COMPLETED_NUM);
 	}
 
@@ -278,6 +278,5 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 	protected function setStatusToNotAttempted() {
 		$this->setStatusAndRedirect(ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM);
 	}
-
 }
 ?>
