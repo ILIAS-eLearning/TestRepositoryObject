@@ -31,9 +31,9 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 	 */
 	protected function afterConstructor()
 	{
-		global $DIC, $tpl;
-		$this->ctrl = $DIC->ctrl();
-		$this->tabs = $DIC->tabs();
+		global $ilCtrl, $ilTabs, $tpl;
+		$this->ctrl = $ilCtrl;
+		$this->tabs = $ilTabs;
 		$this->tpl = $tpl;
 	}
 
