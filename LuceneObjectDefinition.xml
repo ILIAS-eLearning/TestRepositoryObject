@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ObjectDefinition xmlns:xi="http://www.w3.org/2001/XInclude" type="dcl" indexType="incremental">
 	<Document type="default">
-		<xi:include href="../../Services/Object/LuceneDataSource.xml" />
+		<xi:include href="../../../../../../../Services/Object/LuceneDataSource.xml" />
 		<DataSource type="JDBC" action="append">
 			<Query>
 				SELECT 'Repoplugin' as xtstsearch FROM object_data
