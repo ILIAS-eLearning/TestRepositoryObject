@@ -1,0 +1,39 @@
+obj_xtst#:#Test Repository Object
+objs_xtst#:#Test Repository Objects
+obj_xtst_duplicate#:#Kopieren
+objs_xtst_duplicate#:#Kopiere Test Repository Objects
+obj_xtst_select#:#Wähle Test Repository Object
+xtst_add#:#Test Repository Object hinzufügen
+xtst_new#:#Neues New Test Repository Object
+xtst_read#:#Lesezugriff auf Test Repository Object
+xtst_write#:#Test Repository Object bearbeiten
+xtst_delete#:#Test Repository Object löschen
+xtst_visible#:#Test Repository Object ist sichtbar
+xtst_edit_permission#:#Zugriffsrecht bearbeiten
+crs_create_xtst#:#Erstelle Test Repository Object
+grp_create_xtst#:#Erstelle Test Repository Object
+fold_create_xtst#:#Erstelle Test Repository Object
+root_create_xtst#:#Erstelle Test Repository Object
+cat_create_xtst#:#Erstelle Test Repository Object
+title#:#Titel
+description#:#Beschreibung
+online#:#Online
+save#:#Speichern
+update#:#Update
+properties#:#Eigenschaften
+content#:#Inhalt
+copy#:#Kopieren
+edit#:#Bearbeiten
+export#:#Export
+set_not_attempted#:#Setze LP Status auf "Nicht Versucht"
+set_in_progress#:#Setze LP Status auf "In Bearbeitung"
+set_passed#:#Setze LP Status auf "Bestanden"
+set_failed#:#Setze LP Status auf "Nicht Bestanden"
+set_completed#:#Setze LP Status auf "Durchgeführt"
+lp_status_0#:#Nicht Versucht
+lp_status_1#:#In Bearbeitung
+lp_status_2#:#Durchgeführt
+lp_status_3#:#Nicht Bestanden
+lp_status_#:#Kein Status gesetzt.
+lp_status_info#:#Achtung, wenn Sie den Lernzustand Ändern so wird der Lernfortschritt für diesen Benutzer bearbeitet UND alle anderen Benutzer auf "Nicht Teilgenommen" gesetzt! Mit der Lucenesuche wird dieses Objekt gefunden, wenn man nach dem Titel der Beschreibung oder dem Begriff "Repoplugin" sucht.
+offline:#:Offline

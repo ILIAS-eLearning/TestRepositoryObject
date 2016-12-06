@@ -15,7 +15,7 @@ grp_create_xtst#:#Create Test Repository Object
 fold_create_xtst#:#Create Test Repository Object
 root_create_xtst#:#Create Test Repository Object
 cat_create_xtst#:#Create Test Repository Object
-title#:#Save
+title#:#Title
 description#:#Description
 online#:#Online
 save#:#Save
@@ -29,8 +29,11 @@ set_not_attempted#:#Set LP Status to not attempted
 set_in_progress#:#Set LP Status to in progress
 set_passed#:#Set LP Status to not completed
 set_failed#:#Set LP Status to not failed
+set_completed#:#Set LP Status to completed
 lp_status_0#:#Not Attempted
 lp_status_1#:#In Progress
 lp_status_2#:#Completed
 lp_status_3#:#Failed
+lp_status_#:#No state yet.
 lp_status_info#:#Attention: Setting the LP Status will set the LP status of the currently logged in user to the chosen Stauts. THE STATUS OF EVERY OTHER USER WILL BE SET TO NOT ATTEMPTED!
+offline:#:Offline
