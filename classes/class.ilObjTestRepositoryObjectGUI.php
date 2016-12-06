@@ -7,6 +7,7 @@ require_once("./Services/Form/classes/class.ilCheckboxInputGUI.php");
 require_once("./Services/Tracking/classes/class.ilLearningProgress.php");
 require_once("./Services/Tracking/classes/class.ilLPStatusWrapper.php");
 require_once("./Services/Tracking/classes/status/class.ilLPStatusPlugin.php");
+require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/TestRepositoryObject/classes/class.ilTestRepositoryObjectPlugin.php");
 
 /**
  * @ilCtrl_isCalledBy ilObjTestRepositoryObjectGUI: ilRepositoryGUI, ilAdministrationGUI, ilObjPluginDispatchGUI
