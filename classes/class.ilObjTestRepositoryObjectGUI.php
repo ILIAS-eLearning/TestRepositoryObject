@@ -9,6 +9,7 @@ require_once("./Services/Tracking/classes/class.ilLPStatusWrapper.php");
 require_once("./Services/Tracking/classes/status/class.ilLPStatusPlugin.php");
 require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/TestRepositoryObject/classes/class.ilTestRepositoryObjectPlugin.php");
 require_once("./Services/Form/classes/class.ilPropertyFormGUI.php");
+require_once("./Services/Form/classes/class.ilNonEditableValueGUI.php");
 
 /**
  * @ilCtrl_isCalledBy ilObjTestRepositoryObjectGUI: ilRepositoryGUI, ilAdministrationGUI, ilObjPluginDispatchGUI
@@ -209,11 +210,8 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 	}
 
 	protected function showContent() {
-
-
 		$this->tabs->activateTab("content");
-		/** @var ilTemplate $template */
-		$template = $this->plugin->getTemplate("tpl.content.html");
+
 		/** @var ilObjTestRepositoryObject $object */
 		$object = $this->object;
 
