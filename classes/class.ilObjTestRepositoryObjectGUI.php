@@ -8,6 +8,8 @@ require_once("./Services/Tracking/classes/class.ilLearningProgress.php");
 require_once("./Services/Tracking/classes/class.ilLPStatusWrapper.php");
 require_once("./Services/Tracking/classes/status/class.ilLPStatusPlugin.php");
 require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/TestRepositoryObject/classes/class.ilTestRepositoryObjectPlugin.php");
+require_once("./Services/Form/classes/class.ilPropertyFormGUI.php");
+require_once("./Services/Form/classes/class.ilNonEditableValueGUI.php");
 
 /**
  * @ilCtrl_isCalledBy ilObjTestRepositoryObjectGUI: ilRepositoryGUI, ilAdministrationGUI, ilObjPluginDispatchGUI
@@ -209,34 +211,53 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 
 	protected function showContent() {
 		$this->tabs->activateTab("content");
-		/** @var ilTemplate $template */
-		$template = $this->plugin->getTemplate("tpl.content.html");
+
 		/** @var ilObjTestRepositoryObject $object */
 		$object = $this->object;
-		$template->setVariable("TITLE", $object->getTitle());
-		$template->setVariable("DESCRIPTION", $object->getDescription());
-		$template->setVariable("ONLINE_STATUS", $object->isOnline()?"Online":"Offline");
-		$template->setVariable("ONLINE_COLOR", $object->isOnline()?"green":"red");
 
-		$template->setVariable("SET_COMPLETED", $this->ctrl->getLinkTarget($this, "setStatusToCompleted"));
-		$template->setVariable("SET_COMPLETED_TXT", $this->plugin->txt("set_completed"));
+		$form = new ilPropertyFormGUI();
+		$form->setTitle($object->getTitle());
 
-		$template->setVariable("SET_NOT_ATTEMPTED", $this->ctrl->getLinkTarget($this, "setStatusToNotAttempted"));
-		$template->setVariable("SET_NOT_ATTEMPTED_TXT", $this->plugin->txt("set_not_attempted"));
+		$i = new ilNonEditableValueGUI($this->plugin->txt("title"));
+		$i->setInfo($object->getTitle());
+		$form->addItem($i);
 
-		$template->setVariable("SET_FAILED", $this->ctrl->getLinkTarget($this, "setStatusToFailed"));
-		$template->setVariable("SET_FAILED_TXT", $this->plugin->txt("set_failed"));
+		$i = new ilNonEditableValueGUI($this->plugin->txt("description"));
+		$i->setInfo($object->getDescription());
+		$form->addItem($i);
 
-		$template->setVariable("SET_IN_PROGRESS", $this->ctrl->getLinkTarget($this, "setStatusToInProgress"));
-		$template->setVariable("SET_IN_PROGRESS_TXT", $this->plugin->txt("set_in_progress"));
+		$i = new ilNonEditableValueGUI($this->plugin->txt("online_status"));
+		$i->setInfo($object->isOnline()?"Online":"Offline");
+		$form->addItem($i);
 
 		global $ilUser;
 		$progress = new ilLPStatusPlugin($this->object->getId());
 		$status = $progress->determineStatus($this->object->getId(), $ilUser->getId());
-		$template->setVariable("LP_STATUS", $this->plugin->txt("lp_status_".$status));
-		$template->setVariable("LP_INFO", $this->plugin->txt("lp_status_info"));
+		$i = new ilNonEditableValueGUI($this->plugin->txt("lp_status"));
+		$i->setInfo($this->plugin->txt("lp_status_".$status));
+		$form->addItem($i);
 
-		$this->tpl->setContent($template->get());
+		$i = new ilNonEditableValueGUI();
+		$i->setInfo("<a href='".$this->ctrl->getLinkTarget($this, "setStatusToCompleted")."'> ".$this->plugin->txt("set_completed"));
+		$form->addItem($i);
+
+		$i = new ilNonEditableValueGUI();
+		$i->setInfo("<a href='".$this->ctrl->getLinkTarget($this, "setStatusToNotAttempted")."'> ".$this->plugin->txt("set_not_attempted"));
+		$form->addItem($i);
+
+		$i = new ilNonEditableValueGUI();
+		$i->setInfo("<a href='".$this->ctrl->getLinkTarget($this, "setStatusToFailed")."'> ".$this->plugin->txt("set_failed"));
+		$form->addItem($i);
+
+		$i = new ilNonEditableValueGUI();
+		$i->setInfo("<a href='".$this->ctrl->getLinkTarget($this, "setStatusToInProgress")."'> ".$this->plugin->txt("set_in_progress"));
+		$form->addItem($i);
+
+		$i = new ilNonEditableValueGUI($this->plugin->txt("important"));
+		$i->setInfo($this->plugin->txt("lp_status_info"));
+		$form->addItem($i);
+
+		$this->tpl->setContent($form->getHTML());
 	}
 
 	/**

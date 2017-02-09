@@ -35,5 +35,9 @@ lp_status_1#:#In Progress
 lp_status_2#:#Completed
 lp_status_3#:#Failed
 lp_status_#:#No state yet.
-lp_status_info#:#Attention: Setting the LP Status will set the LP status of the currently logged in user to the chosen Stauts. THE STATUS OF EVERY OTHER USER WILL BE SET TO NOT ATTEMPTED!
+lp_status_info#:#Attention: Setting the LP Status will set the LP status of the currently logged in user to the chosen status. THE STATUS OF EVERY OTHER USER WILL BE SET TO NOT ATTEMPTED! You will find this repository object by searching for its title, its description or the expression "Repoplugin".
 offline:#:Offline
+important#:#Important
+online_status#:#Online Status
+lp_status#:#Learning Progress
+update_successful#:Update Successful
