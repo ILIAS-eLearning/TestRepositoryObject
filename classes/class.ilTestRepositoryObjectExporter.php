@@ -30,7 +30,7 @@ class ilTestRepositoryObjectExporter extends ilXmlExporter {
 		$writer->xmlElement("online", null, $entity->isOnline());
 		$writer->xmlEndTag("xtst");
 
-		return $writer->xmlDumpMem(false);;
+		return $writer->xmlDumpMem(false);
 	}
 
 	public function init() {
