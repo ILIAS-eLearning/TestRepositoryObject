@@ -108,8 +108,10 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 		if ($ilAccess->checkAccess("write", "", $this->object->getRefId()))
 		{
 			$this->tabs->addTab("properties", $this->txt("properties"), $ilCtrl->getLinkTarget($this, "editProperties"));
-			$this->tabs->addTab("export", $this->txt("export"), $ilCtrl->getLinkTargetByClass("ilexportgui", ""));
 		}
+
+		// standard export tab
+		$this->addExportTab();
 
 		// standard permission tab
 		$this->addPermissionTab();
