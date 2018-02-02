@@ -57,11 +57,6 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 			case "editProperties":   // list all commands that need write permission here
 			case "updateProperties":
 			case "saveProperties":
-			case "showExport":
-				$this->checkPermission("write");
-				$this->$cmd();
-				break;
-
 			case "showContent":   // list all commands that need read permission here
 			case "setStatusToCompleted":
 			case "setStatusToFailed":
@@ -240,14 +235,6 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 		$object->setTitle($form->getInput('title'));
 		$object->setDescription($form->getInput('description'));
 		$object->setOnline($form->getInput('online'));
-	}
-
-	protected function showExport() {
-		require_once("./Services/Export/classes/class.ilExportGUI.php");
-		$export = new ilExportGUI($this);
-		$export->addFormat("xml");
-		$ret = $this->ctrl->forwardCommand($export);
-
 	}
 
 	/**
