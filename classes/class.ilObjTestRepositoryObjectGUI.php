@@ -39,34 +39,6 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 		$this->tpl = $tpl;
 	}
 
-	public function executeCommand() {
-		global $tpl;
-
-
-		$next_class = $this->ctrl->getNextClass($this);
-		switch ($next_class) {
-			case 'ilexportgui':
-				// only if plugin supports it?
-				$tpl->setTitle($this->object->getTitle());
-				$tpl->setTitleIcon(ilObject::_getIcon($this->object->getId()));
-				$this->setLocator();
-				$tpl->getStandardTemplate();
-				$this->setTabs();
-				include_once './Services/Export/classes/class.ilExportGUI.php';
-				$this->tabs->activateTab("export");
-				$exp = new ilExportGUI($this);
-				$exp->addFormat('xml');
-				$this->ctrl->forwardCommand($exp);
-				$tpl->show();
-				return;
-				break;
-		}
-
-		$return_value = parent::executeCommand();
-
-		return $return_value;
-	}
-
 	/**
 	 * Get type.
 	 */
