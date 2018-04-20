@@ -39,34 +39,6 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 		$this->tpl = $tpl;
 	}
 
-	public function executeCommand() {
-		global $tpl;
-
-
-		$next_class = $this->ctrl->getNextClass($this);
-		switch ($next_class) {
-			case 'ilexportgui':
-				// only if plugin supports it?
-				$tpl->setTitle($this->object->getTitle());
-				$tpl->setTitleIcon(ilObject::_getIcon($this->object->getId()));
-				$this->setLocator();
-				$tpl->getStandardTemplate();
-				$this->setTabs();
-				include_once './Services/Export/classes/class.ilExportGUI.php';
-				$this->tabs->activateTab("export");
-				$exp = new ilExportGUI($this);
-				$exp->addFormat('xml');
-				$this->ctrl->forwardCommand($exp);
-				$tpl->show();
-				return;
-				break;
-		}
-
-		$return_value = parent::executeCommand();
-
-		return $return_value;
-	}
-
 	/**
 	 * Get type.
 	 */
@@ -85,11 +57,6 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 			case "editProperties":   // list all commands that need write permission here
 			case "updateProperties":
 			case "saveProperties":
-			case "showExport":
-				$this->checkPermission("write");
-				$this->$cmd();
-				break;
-
 			case "showContent":   // list all commands that need read permission here
 			case "setStatusToCompleted":
 			case "setStatusToFailed":
@@ -141,8 +108,10 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 		if ($ilAccess->checkAccess("write", "", $this->object->getRefId()))
 		{
 			$this->tabs->addTab("properties", $this->txt("properties"), $ilCtrl->getLinkTarget($this, "editProperties"));
-			$this->tabs->addTab("export", $this->txt("export"), $ilCtrl->getLinkTargetByClass("ilexportgui", ""));
 		}
+
+		// standard export tab
+		$this->addExportTab();
 
 		// standard permission tab
 		$this->addPermissionTab();
@@ -268,14 +237,6 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 		$object->setTitle($form->getInput('title'));
 		$object->setDescription($form->getInput('description'));
 		$object->setOnline($form->getInput('online'));
-	}
-
-	protected function showExport() {
-		require_once("./Services/Export/classes/class.ilExportGUI.php");
-		$export = new ilExportGUI($this);
-		$export->addFormat("xml");
-		$ret = $this->ctrl->forwardCommand($export);
-
 	}
 
 	/**
