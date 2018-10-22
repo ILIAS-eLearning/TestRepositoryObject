@@ -40,4 +40,6 @@ offline:#:Offline
 important#:#Important
 online_status#:#Online Status
 lp_status#:#Learning Progress
-update_successful#:Update Successful
+update_successful#:#Update Successful
+news_title#:#Title (en)
+news_content#:#Content (en)

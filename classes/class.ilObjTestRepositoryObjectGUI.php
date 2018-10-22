@@ -62,6 +62,7 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 			case "setStatusToFailed":
 			case "setStatusToInProgress":
 			case "setStatusToNotAttempted":
+			default:
 				$this->checkPermission("read");
 				$this->$cmd();
 				break;
@@ -179,6 +180,16 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 	}
 
 	protected function showContent() {
+
+		global $ilToolbar, $ilCtrl;
+
+		/** @var ilToolbarGUI $ilToolbar */
+		$ilToolbar->addButton("Add News", $ilCtrl->getLinkTarget($this, "addNews"));
+		$ilToolbar->addButton("Add News (Lang Var)", $ilCtrl->getLinkTarget($this, "addNewsLangVar"));
+		$ilToolbar->addButton("Delete One", $ilCtrl->getLinkTarget($this, "deleteOneNews"));
+		$ilToolbar->addButton("Update One", $ilCtrl->getLinkTarget($this, "updateOneNews"));
+
+
 		$this->tabs->activateTab("content");
 
 		/** @var ilObjTestRepositoryObject $object */
@@ -276,5 +287,107 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 	protected function setStatusToNotAttempted() {
 		$this->setStatusAndRedirect(ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM);
 	}
+
+
+	//
+	// News for plugin
+	//
+
+	/**
+	 * Add news
+	 *
+	 * @param
+	 * @return
+	 */
+	protected function addNews()
+	{
+		global $ilCtrl, $DIC;
+
+		$ns = $DIC->news();
+
+		$context = $ns->contextForRefId($this->object->getRefId());
+		$item = $ns->item($context);
+		$item->setTitle("Hello World");
+		$item->setContent("This is the news.");
+		$ns->data()->save($item);
+
+		ilUtil::sendInfo("News created", true);
+		$ilCtrl->redirect($this, "showContent");
+	}
+
+	/**
+	 * Add news with lang vars
+	 *
+	 * @param
+	 * @return
+	 */
+	protected function addNewsLangVar()
+	{
+		global $ilCtrl, $DIC;
+
+		$ns = $DIC->news();
+
+		$context = $ns->contextForRefId($this->object->getRefId());
+		$item = $ns->item($context);
+		$item->setTitle("news_title");
+		$item->setContentTextIsLangVar(true);
+		$item->setContentIsLangVar(true);
+		$item->setContent("news_content");
+		$ns->data()->save($item);
+
+		ilUtil::sendInfo("News created", true);
+		$ilCtrl->redirect($this, "showContent");
+	}
+
+	/**
+	 * Delete one news
+	 *
+	 * @param
+	 * @return
+	 */
+	protected function deleteOneNews()
+	{
+		global $ilCtrl, $DIC;
+
+		$ns = $DIC->news();
+
+		$context = $ns->contextForRefId($this->object->getRefId());
+		$items = $ns->data()->getNewsOfContext($context);
+		if ($n = current($items))
+		{
+			$ns->data()->delete($n);
+			ilUtil::sendInfo("News deleted.", true);
+		}
+
+
+		$ilCtrl->redirect($this, "showContent");
+	}
+
+	/**
+	 * Update one news
+	 *
+	 * @param
+	 * @return
+	 */
+	protected function updateOneNews()
+	{
+		global $ilCtrl, $DIC;
+
+		$ns = $DIC->news();
+
+		$context = $ns->contextForRefId($this->object->getRefId());
+		$items = $ns->data()->getNewsOfContext($context);
+		if ($n = current($items))
+		{
+			$n->setContent("News content changed at ".date("d.m.Y H:m:s"));
+			$n->setContentTextIsLangVar(false);
+			$ns->data()->save($n);
+			ilUtil::sendInfo("News updated.", true);
+		}
+
+		$ilCtrl->redirect($this, "showContent");
+	}
+
+
 }
 ?>
