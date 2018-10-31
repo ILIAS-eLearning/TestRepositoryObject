@@ -2,7 +2,7 @@
 
 include_once("./Services/Repository/classes/class.ilObjectPluginAccess.php");
 require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/TestRepositoryObject/classes/class.ilObjTestRepositoryObject.php");
-require_once("./Services/AccessControl/interfaces/interface.ilConditionHandling.php");
+require_once("./Services/Conditions/interfaces/interface.ilConditionHandling.php");
 
 /**
  * Please do not create instances of large application classes
