@@ -89,11 +89,7 @@ class ilObjTestRepositoryObject extends ilObjectPlugin implements ilLPStatusPlug
 	 */
 	function doCloneObject($new_obj, $a_target_id, $a_copy_id = null)
 	{
-		global $ilDB;
-
-		$new_obj->setOnline($this->isOnline());
-		$new_obj->setOptionOne($this->getOptionOne());
-		$new_obj->setOptionTwo($this->getOptionTwo());
+		//$new_obj->setOnline($this->isOnline());
 		$new_obj->update();
 	}
 

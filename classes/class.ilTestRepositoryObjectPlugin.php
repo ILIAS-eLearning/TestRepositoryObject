@@ -17,5 +17,14 @@ class ilTestRepositoryObjectPlugin extends ilRepositoryObjectPlugin
 	protected function uninstallCustom() {
 		// TODO: Nothing to do here.
 	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function allowCopy()
+	{
+		return true;
+	}
+
 }
 ?>
