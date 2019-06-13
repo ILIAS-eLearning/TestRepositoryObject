@@ -2,7 +2,7 @@
 
 include_once("./Services/Repository/classes/class.ilObjectPluginAccess.php");
 require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/TestRepositoryObject/classes/class.ilObjTestRepositoryObject.php");
-require_once("./Services/AccessControl/interfaces/interface.ilConditionHandling.php");
+require_once("./Services/Conditions/interfaces/interface.ilConditionHandling.php"); //bugfix mantis 24891
 
 /**
  * Please do not create instances of large application classes
@@ -71,7 +71,7 @@ class ilObjTestRepositoryObjectAccess extends ilObjectPluginAccess implements il
 	 * Returns an array with valid operators for the specific object type
 	 */
 	public static function getConditionOperators() {
-		include_once './Services/AccessControl/classes/class.ilConditionHandler.php';
+		include_once './Services/Conditions/classes/class.ilConditionHandler.php'; //bugfix mantis 24891
 		return array(
 			ilConditionHandler::OPERATOR_FAILED,
 			ilConditionHandler::OPERATOR_PASSED
