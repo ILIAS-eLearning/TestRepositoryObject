@@ -42,7 +42,7 @@ class ilObjTestRepositoryObjectListGUI extends ilObjectPluginListGUI
 				"permission" => "write",
 				"cmd" => "editProperties",
 				"txt" => $this->txt("edit"),
-				"default" => false),
+				"default" => false)
 		);
 	}
 

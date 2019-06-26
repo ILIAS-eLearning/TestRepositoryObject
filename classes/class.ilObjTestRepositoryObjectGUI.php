@@ -39,34 +39,6 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 		$this->tpl = $tpl;
 	}
 
-	public function executeCommand() {
-		global $tpl;
-
-
-		$next_class = $this->ctrl->getNextClass($this);
-		switch ($next_class) {
-			case 'ilexportgui':
-				// only if plugin supports it?
-				$tpl->setTitle($this->object->getTitle());
-				$tpl->setTitleIcon(ilObject::_getIcon($this->object->getId()));
-				$this->setLocator();
-				$tpl->getStandardTemplate();
-				$this->setTabs();
-				include_once './Services/Export/classes/class.ilExportGUI.php';
-				$this->tabs->activateTab("export");
-				$exp = new ilExportGUI($this);
-				$exp->addFormat('xml');
-				$this->ctrl->forwardCommand($exp);
-				$tpl->show();
-				return;
-				break;
-		}
-
-		$return_value = parent::executeCommand();
-
-		return $return_value;
-	}
-
 	/**
 	 * Get type.
 	 */
@@ -85,16 +57,12 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 			case "editProperties":   // list all commands that need write permission here
 			case "updateProperties":
 			case "saveProperties":
-			case "showExport":
-				$this->checkPermission("write");
-				$this->$cmd();
-				break;
-
 			case "showContent":   // list all commands that need read permission here
 			case "setStatusToCompleted":
 			case "setStatusToFailed":
 			case "setStatusToInProgress":
 			case "setStatusToNotAttempted":
+			default:
 				$this->checkPermission("read");
 				$this->$cmd();
 				break;
@@ -141,8 +109,10 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 		if ($ilAccess->checkAccess("write", "", $this->object->getRefId()))
 		{
 			$this->tabs->addTab("properties", $this->txt("properties"), $ilCtrl->getLinkTarget($this, "editProperties"));
-			$this->tabs->addTab("export", $this->txt("export"), $ilCtrl->getLinkTargetByClass("ilexportgui", ""));
 		}
+
+		// standard export tab
+		$this->addExportTab();
 
 		// standard permission tab
 		$this->addPermissionTab();
@@ -210,6 +180,16 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 	}
 
 	protected function showContent() {
+
+		global $ilToolbar, $ilCtrl;
+
+		/** @var ilToolbarGUI $ilToolbar */
+		$ilToolbar->addButton("Add News", $ilCtrl->getLinkTarget($this, "addNews"));
+		$ilToolbar->addButton("Add News (Lang Var)", $ilCtrl->getLinkTarget($this, "addNewsLangVar"));
+		$ilToolbar->addButton("Delete One", $ilCtrl->getLinkTarget($this, "deleteOneNews"));
+		$ilToolbar->addButton("Update One", $ilCtrl->getLinkTarget($this, "updateOneNews"));
+
+
 		$this->tabs->activateTab("content");
 
 		/** @var ilObjTestRepositoryObject $object */
@@ -270,14 +250,6 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 		$object->setOnline($form->getInput('online'));
 	}
 
-	protected function showExport() {
-		require_once("./Services/Export/classes/class.ilExportGUI.php");
-		$export = new ilExportGUI($this);
-		$export->addFormat("xml");
-		$ret = $this->ctrl->forwardCommand($export);
-
-	}
-
 	/**
 	 * We need this method if we can't access the tabs otherwise...
 	 */
@@ -315,5 +287,107 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 	protected function setStatusToNotAttempted() {
 		$this->setStatusAndRedirect(ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM);
 	}
+
+
+	//
+	// News for plugin
+	//
+
+	/**
+	 * Add news
+	 *
+	 * @param
+	 * @return
+	 */
+	protected function addNews()
+	{
+		global $ilCtrl, $DIC;
+
+		$ns = $DIC->news();
+
+		$context = $ns->contextForRefId($this->object->getRefId());
+		$item = $ns->item($context);
+		$item->setTitle("Hello World");
+		$item->setContent("This is the news.");
+		$ns->data()->save($item);
+
+		ilUtil::sendInfo("News created", true);
+		$ilCtrl->redirect($this, "showContent");
+	}
+
+	/**
+	 * Add news with lang vars
+	 *
+	 * @param
+	 * @return
+	 */
+	protected function addNewsLangVar()
+	{
+		global $ilCtrl, $DIC;
+
+		$ns = $DIC->news();
+
+		$context = $ns->contextForRefId($this->object->getRefId());
+		$item = $ns->item($context);
+		$item->setTitle("news_title");
+		$item->setContentTextIsLangVar(true);
+		$item->setContentIsLangVar(true);
+		$item->setContent("news_content");
+		$ns->data()->save($item);
+
+		ilUtil::sendInfo("News created", true);
+		$ilCtrl->redirect($this, "showContent");
+	}
+
+	/**
+	 * Delete one news
+	 *
+	 * @param
+	 * @return
+	 */
+	protected function deleteOneNews()
+	{
+		global $ilCtrl, $DIC;
+
+		$ns = $DIC->news();
+
+		$context = $ns->contextForRefId($this->object->getRefId());
+		$items = $ns->data()->getNewsOfContext($context);
+		if ($n = current($items))
+		{
+			$ns->data()->delete($n);
+			ilUtil::sendInfo("News deleted.", true);
+		}
+
+
+		$ilCtrl->redirect($this, "showContent");
+	}
+
+	/**
+	 * Update one news
+	 *
+	 * @param
+	 * @return
+	 */
+	protected function updateOneNews()
+	{
+		global $ilCtrl, $DIC;
+
+		$ns = $DIC->news();
+
+		$context = $ns->contextForRefId($this->object->getRefId());
+		$items = $ns->data()->getNewsOfContext($context);
+		if ($n = current($items))
+		{
+			$n->setContent("News content changed at ".date("d.m.Y H:m:s"));
+			$n->setContentTextIsLangVar(false);
+			$ns->data()->save($n);
+			ilUtil::sendInfo("News updated.", true);
+		}
+
+		$ilCtrl->redirect($this, "showContent");
+	}
+
+
 }
 ?>
