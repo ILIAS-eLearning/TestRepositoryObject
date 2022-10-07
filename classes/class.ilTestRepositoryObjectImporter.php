@@ -1,35 +1,49 @@
 <?php
 
-require_once("./Services/Export/classes/class.ilXmlImporter.php");
-require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/TestRepositoryObject/classes/class.ilObjTestRepositoryObject.php");
-require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/TestRepositoryObject/classes/class.ilTestRepositoryObjectPlugin.php");
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 /**
  * Class ilTestRepositoryObjectImporter
- *
  * @author Oskar Truffer <ot@studer-raimann.ch>
  */
-class ilTestRepositoryObjectImporter extends ilXmlImporter {
-
-	/**
-	 * Import xml representation
-	 *
-	 * @param    string        entity
-	 * @param    string        target release
-	 * @param    string        id
-	 * @return    string        xml string
-	 */
-	public function importXmlRepresentation($a_entity, $a_id, $a_xml, $a_mapping) {
-		$xml = simplexml_load_string($a_xml);
-		$pl = new ilTestRepositoryObjectPlugin();
-		$entity = new ilObjTestRepositoryObject();
-		$entity->setTitle((string) $xml->title." ".$pl->txt("copy"));
-		$entity->setDescription((string) $xml->description);
-		$entity->setOnline((string) $xml->online);
-		$entity->setImportId($a_id);
-		$entity->create();
-		$new_id = $entity->getId();
-		$a_mapping->addMapping("Plugins/TestObjectRepository", "xtst", $a_id, $new_id);
-		return $new_id;
-	}
+class ilTestRepositoryObjectImporter extends ilXmlImporter
+{
+    /**
+     * Import xml representation
+     * @param string        entity
+     * @param string        target release
+     * @param string        id
+     * @return    string        xml string
+     */
+    public function importXmlRepresentation(
+        string $a_entity,
+        string $a_id,
+        string $a_xml,
+        ilImportMapping $a_mapping
+    ) : void {
+        $xml = simplexml_load_string($a_xml);
+        $pl = new ilTestRepositoryObjectPlugin();
+        $entity = new ilObjTestRepositoryObject();
+        $entity->setTitle((string) $xml->title . " " . $pl->txt("copy"));
+        $entity->setDescription((string) $xml->description);
+        $entity->setOnline((string) $xml->online);
+        $entity->setImportId($a_id);
+        $entity->create();
+        $new_id = $entity->getId();
+        $a_mapping->addMapping("Plugins/TestObjectRepository", "xtst", $a_id, $new_id);
+    }
 }
