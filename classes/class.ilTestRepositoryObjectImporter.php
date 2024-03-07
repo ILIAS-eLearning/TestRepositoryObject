@@ -36,7 +36,7 @@ class ilTestRepositoryObjectImporter extends ilXmlImporter
         ilImportMapping $a_mapping
     ) : void {
         $xml = simplexml_load_string($a_xml);
-        $pl = new ilTestRepositoryObjectPlugin();
+        $pl = ilTestRepositoryObjectPlugin::getInstance();
         $entity = new ilObjTestRepositoryObject();
         $entity->setTitle((string) $xml->title . " " . $pl->txt("copy"));
         $entity->setDescription((string) $xml->description);

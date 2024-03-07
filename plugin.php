@@ -2,7 +2,7 @@
 $id = "xtst";
  
 // code version; must be changed for all code changes
-$version = "0.0.8";
+$version = "0.0.9";
   
 // ilias min and max version; must always reflect the versions that should
 // run with the plugin

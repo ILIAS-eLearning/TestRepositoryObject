@@ -20,6 +20,18 @@ class ilTestRepositoryObjectPlugin extends ilRepositoryObjectPlugin
 {
     public const ID = "xtst";
 
+    public static function getInstance(): ilRepositoryObjectPlugin
+    {
+        /**
+         * @var ilComponentFactory $component_factory
+         * @var ilTestRepositoryObjectPlugin $plugin
+         */
+        global $DIC;
+        $component_factory = $DIC["component.factory"];
+        $plugin = $component_factory->getPlugin(self::ID);
+        return $plugin;
+    }
+
     // must correspond to the plugin subdirectory
     public function getPluginName() : string
     {
