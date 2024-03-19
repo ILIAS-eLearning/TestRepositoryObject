@@ -35,8 +35,11 @@ class ilTestRepositoryObjectImporter extends ilXmlImporter
         string $a_xml,
         ilImportMapping $a_mapping
     ) : void {
+        global $DIC;
+
+        $component_repository = $DIC["component.factory"];
+        $pl = $component_repository->getPlugin("xtst");
         $xml = simplexml_load_string($a_xml);
-        $pl = new ilTestRepositoryObjectPlugin();
         $entity = new ilObjTestRepositoryObject();
         $entity->setTitle((string) $xml->title . " " . $pl->txt("copy"));
         $entity->setDescription((string) $xml->description);
