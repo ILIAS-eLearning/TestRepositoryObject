@@ -16,9 +16,11 @@
  *
  *********************************************************************/
 
+declare(strict_types=1);
+
 class ilTestRepositoryObjectPlugin extends ilRepositoryObjectPlugin
 {
-    public const ID = "xtst";
+    public const string ID = 'xtst';
 
     // must correspond to the plugin subdirectory
     public function getPluginName() : string

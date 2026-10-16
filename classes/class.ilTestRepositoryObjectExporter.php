@@ -16,6 +16,8 @@
  *
  *********************************************************************/
 
+declare(strict_types=1);
+
 /**
  * Class ilTestRepositoryObjectExporter
  * @author Oskar Truffer <ot@studer-raimann.ch>
@@ -23,32 +25,27 @@
 class ilTestRepositoryObjectExporter extends ilXmlExporter
 {
 
-    /**
-     * Get xml representation
-     * @param string        entity
-     * @param string        schema version
-     * @param string        id
-     * @return    string        xml string
-     */
     public function getXmlRepresentation(string $a_entity, string $a_schema_version, string $a_id) : string
     {
-        $ref_ids = ilObject::_getAllReferences($a_id);
+        $ref_ids = ilObject::_getAllReferences((int) $a_id);
         $ref_id = array_shift($ref_ids);
         $entity = new ilObjTestRepositoryObject($ref_id);
 
-        $writer = new ilXmlWriter();
-        $writer->xmlStartTag("xtst");
-        $writer->xmlElement("title", null, $entity->getTitle());
-        $writer->xmlElement("description", null, $entity->getDescription());
-        $writer->xmlElement("online", null, $entity->isOnline());
-        $writer->xmlEndTag("xtst");
+        $writer = new XMLWriter();
+        $writer->openMemory();
+        $writer->startDocument('1.0', 'UTF-8');
+        $writer->startElementNS(null, 'xtst', 'https://www.ilias.de/Plugins/TestRepositoryObject/md/5_2');
+        $writer->writeElement('title', $entity->getTitle());
+        $writer->writeElement('description', $entity->getDescription());
+        $writer->writeElement('online', $entity->isOnline() ? '1' : '0');
+        $writer->endElement();
+        $writer->endDocument();
 
-        return $writer->xmlDumpMem(false);
+        return $writer->outputMemory();
     }
 
     public function init() : void
     {
-        // TODO: Implement init() method.
     }
 
     /**
@@ -62,18 +59,16 @@ class ilTestRepositoryObjectExporter extends ilXmlExporter
      *            "min" => "4.1.0",
      *            "max" => "")
      *        );
-     * @param string $a_entity
-     * @return string[][]
      */
     public function getValidSchemaVersions(string $a_entity) : array
     {
-        return array(
-            "5.2.0" => array(
-                "namespace" => "http://www.ilias.de/Plugins/TestRepositoryObject/md/5_2",
-                "xsd_file" => "ilias_md_5_2.xsd",
-                "min" => "5.2.0",
-                "max" => ""
-            )
-        );
+        return [
+            '5.2.0' => [
+                'namespace' => 'https://www.ilias.de/Plugins/TestRepositoryObject/md/5_2',
+                'xsd_file' => 'ilias_md_5_2.xsd',
+                'min' => '5.2.0',
+                'max' => ''
+            ]
+        ];
     }
 }
