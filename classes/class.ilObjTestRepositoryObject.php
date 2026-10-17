@@ -16,12 +16,17 @@
  *
  *********************************************************************/
 
+declare(strict_types=1);
+
 class ilObjTestRepositoryObject extends ilObjectPlugin implements ilLPStatusPluginInterface
 {
     protected bool $online = false;
+    protected ilDBInterface $db;
 
-    public function __construct($a_ref_id = 0)
+    public function __construct(int $a_ref_id = 0)
     {
+        global $DIC;
+        $this->db = $DIC->database();
         parent::__construct($a_ref_id);
     }
 
@@ -32,56 +37,49 @@ class ilObjTestRepositoryObject extends ilObjectPlugin implements ilLPStatusPlug
 
     protected function doCreate(bool $clone_mode = false) : void
     {
-        global $ilDB;
-
-        $ilDB->manipulate(
+        $this->db->manipulate(
             "INSERT INTO rep_robj_xtst_data " .
             "(id, is_online, option_one, option_two) VALUES (" .
-            $ilDB->quote($this->getId(), "integer") . "," .
-            $ilDB->quote(0, "integer") . "," .
-            $ilDB->quote("default 1", "text") . "," .
-            $ilDB->quote("default 2", "text") .
+            $this->db->quote($this->getId(), "integer") . "," .
+            $this->db->quote((int) $this->isOnline(), "integer") . "," .
+            $this->db->quote("default 1", "text") . "," .
+            $this->db->quote("default 2", "text") .
             ")"
         );
     }
 
     protected function doRead() : void
     {
-        global $ilDB;
-
-        $set = $ilDB->query(
+        $set = $this->db->query(
             "SELECT * FROM rep_robj_xtst_data " .
-            " WHERE id = " . $ilDB->quote($this->getId(), "integer")
+            " WHERE id = " . $this->db->quote($this->getId(), "integer")
         );
-        while ($rec = $ilDB->fetchAssoc($set)) {
-            $this->setOnline($rec["is_online"]);
+        while ($rec = $this->db->fetchAssoc($set)) {
+            $this->setOnline((bool) $rec["is_online"]);
         }
     }
 
     protected function doUpdate() : void
     {
-        global $ilDB;
-
-        $ilDB->manipulate(
-            $up = "UPDATE rep_robj_xtst_data SET " .
-                " is_online = " . $ilDB->quote($this->isOnline(), "integer") .
-                " WHERE id = " . $ilDB->quote($this->getId(), "integer")
+        $this->db->manipulate(
+            "UPDATE rep_robj_xtst_data SET " .
+                " is_online = " . $this->db->quote((int) $this->isOnline(), "integer") .
+                " WHERE id = " . $this->db->quote($this->getId(), "integer")
         );
     }
 
     protected function doDelete() : void
     {
-        global $ilDB;
-
-        $ilDB->manipulate(
+        $this->db->manipulate(
             "DELETE FROM rep_robj_xtst_data WHERE " .
-            " id = " . $ilDB->quote($this->getId(), "integer")
+            " id = " . $this->db->quote($this->getId(), "integer")
         );
     }
 
-    protected function doCloneObject($new_obj, $a_target_id, $a_copy_id = null) : void
+    protected function doCloneObject(ilObject2 $new_obj, int $a_target_id, ?int $a_copy_id = null) : void
     {
-        //$new_obj->setOnline($this->isOnline());
+        assert($new_obj instanceof ilObjTestRepositoryObject);
+        $new_obj->setOnline($this->isOnline());
         $new_obj->update();
     }
 
@@ -97,31 +95,33 @@ class ilObjTestRepositoryObject extends ilObjectPlugin implements ilLPStatusPlug
 
     public function getLPCompleted() : array
     {
-        return array();
+        return [];
     }
 
     public function getLPNotAttempted() : array
     {
-        return array();
+        return [];
     }
 
     public function getLPFailed() : array
     {
-        return array(6);
+        return [6];
     }
 
     public function getLPInProgress() : array
     {
-        return array();
+        return [];
     }
 
     public function getLPStatusForUser(int $a_user_id) : int
     {
         global $ilUser;
-        if ($ilUser->getId() == $a_user_id) {
-            return $_SESSION[ilObjTestRepositoryObjectGUI::LP_SESSION_ID] ?? 0;
-        } else {
-            return ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM;
+
+        if ($ilUser->getId() === $a_user_id) {
+            return $_SESSION[ilObjTestRepositoryObjectGUI::LP_SESSION_ID] ?? ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM;
         }
+
+        return ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM;
     }
+
 }

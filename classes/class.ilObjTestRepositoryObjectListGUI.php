@@ -16,6 +16,8 @@
  *
  *********************************************************************/
 
+declare(strict_types=1);
+
 /**
  * handles the presentation in container items (categories, courses, ...)
  * together with the corresponding ...Access class.
@@ -62,11 +64,12 @@ class ilObjTestRepositoryObjectListGUI extends ilObjectPluginListGUI
      */
     public function getProperties() : array
     {
-        global $lng, $ilUser;
-
         $props = array();
         
-        if (!ilObjTestRepositoryObjectAccess::checkOnline($this->obj_id)) {
+        $ref_ids = ilObject::_getAllReferences($this->obj_id);
+        $ref_id = array_shift($ref_ids);
+        $is_online = $ref_id !== null && new ilObjTestRepositoryObject($ref_id)->isOnline();
+        if (!$is_online) {
             $props[] = array("alert" => true,
                              "property" => $this->txt("status"),
                              "value" => $this->txt("offline")

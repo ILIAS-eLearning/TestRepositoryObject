@@ -16,6 +16,8 @@
  *
  *********************************************************************/
 
+declare(strict_types=1);
+
 /**
  * Please do not create instances of large application classes
  * Write small methods within this class to determine the status.
@@ -34,21 +36,16 @@ class ilObjTestRepositoryObjectAccess extends ilObjectPluginAccess implements il
      * @param string $permission permission
      * @param int    $ref_id     reference id
      * @param int    $obj_id     object id
-     * @param int    $user_id    user id (default is current user)
      * @return bool true, if everything is ok
      */
     public function _checkAccess(string $cmd, string $permission, int $ref_id, int $obj_id, ?int $user_id = null) : bool
     {
-        global $ilUser, $ilAccess;
-
-        if ($user_id === 0) {
-            $user_id = $ilUser->getId();
-        }
+        $user_id ??= $this->user->getId();
 
         switch ($permission) {
             case "read":
                 if (!self::checkOnline($obj_id) &&
-                    !$ilAccess->checkAccessOfUser($user_id, "write", "", $ref_id)) {
+                    !$this->access->checkAccessOfUser($user_id, "write", "", $ref_id)) {
                     return false;
                 }
                 break;
@@ -57,33 +54,25 @@ class ilObjTestRepositoryObjectAccess extends ilObjectPluginAccess implements il
         return true;
     }
 
-    public static function checkOnline(int $a_id) : bool
+    public static function checkOnline(int $object_id) : bool
     {
-        global $ilDB;
+        $ref_ids = ilObject::_getAllReferences($object_id);
+        $ref_id = array_shift($ref_ids);
+        if ($ref_id === null) {
+            return false;
+        }
 
-        $set = $ilDB->query(
-            "SELECT is_online FROM rep_robj_xtst_data " .
-            " WHERE id = " . $ilDB->quote($a_id, "integer")
-        );
-        $rec = $ilDB->fetchAssoc($set);
-        return (boolean) $rec["is_online"];
+        return new ilObjTestRepositoryObject($ref_id)->isOnline();
     }
 
-    /**
-     * Returns an array with valid operators for the specific object type
-     */
     public static function getConditionOperators() : array
     {
-        include_once './Services/Conditions/classes/class.ilConditionHandler.php'; //bugfix mantis 24891
-        return array(
+        return [
             ilConditionHandler::OPERATOR_FAILED,
             ilConditionHandler::OPERATOR_PASSED
-        );
+        ];
     }
 
-    /**
-     * check condition for a specific user and object
-     */
     public static function checkCondition(
         int $a_trigger_obj_id,
         string $a_operator,
@@ -92,13 +81,17 @@ class ilObjTestRepositoryObjectAccess extends ilObjectPluginAccess implements il
     ) : bool {
         $ref_ids = ilObject::_getAllReferences($a_trigger_obj_id);
         $ref_id = array_shift($ref_ids);
-        $object = new ilObjTestRepositoryObject($ref_id);
-        switch ($a_operator) {
-            case ilConditionHandler::OPERATOR_PASSED:
-                return $object->getLPStatusForUser($a_usr_id) === ilLPStatus::LP_STATUS_COMPLETED_NUM;
-            case ilConditionHandler::OPERATOR_FAILED:
-                return $object->getLPStatusForUser($a_usr_id) === ilLPStatus::LP_STATUS_FAILED_NUM;
+        if ($ref_id === null) {
+            return false;
         }
-        return false;
+
+        $object = new ilObjTestRepositoryObject($ref_id);
+        return match ($a_operator) {
+            ilConditionHandler::OPERATOR_PASSED =>
+                $object->getLPStatusForUser($a_usr_id) === ilLPStatus::LP_STATUS_COMPLETED_NUM,
+            ilConditionHandler::OPERATOR_FAILED =>
+                $object->getLPStatusForUser($a_usr_id) === ilLPStatus::LP_STATUS_FAILED_NUM,
+            default => false
+        };
     }
 }

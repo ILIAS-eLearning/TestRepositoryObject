@@ -16,37 +16,41 @@
  *
  *********************************************************************/
 
+declare(strict_types=1);
+
 /**
  * Class ilTestRepositoryObjectImporter
  * @author Oskar Truffer <ot@studer-raimann.ch>
  */
 class ilTestRepositoryObjectImporter extends ilXmlImporter
 {
-    /**
-     * Import xml representation
-     * @param string        entity
-     * @param string        target release
-     * @param string        id
-     * @return    string        xml string
-     */
+    protected ilComponentFactory $component_factory;
+
+    public function __construct()
+    {
+        global $DIC;
+        parent::__construct();
+        $this->component_factory = $DIC['component.factory'];
+    }
+
     public function importXmlRepresentation(
         string $a_entity,
         string $a_id,
         string $a_xml,
         ilImportMapping $a_mapping
     ) : void {
-        global $DIC;
-
-        $component_repository = $DIC["component.factory"];
-        $pl = $component_repository->getPlugin("xtst");
+        $pl = $this->component_factory->getPlugin(ilTestRepositoryObjectPlugin::ID);
         $xml = simplexml_load_string($a_xml);
+        if ($xml === false) {
+            throw new ilException('Invalid TestRepositoryObject export XML.');
+        }
         $entity = new ilObjTestRepositoryObject();
-        $entity->setTitle((string) $xml->title . " " . $pl->txt("copy"));
+        $entity->setTitle($xml->title . ' ' . $pl->txt('copy'));
         $entity->setDescription((string) $xml->description);
-        $entity->setOnline((string) $xml->online);
+        $entity->setOnline((int) $xml->online === 1);
         $entity->setImportId($a_id);
         $entity->create();
         $new_id = $entity->getId();
-        $a_mapping->addMapping("Plugins/TestObjectRepository", "xtst", $a_id, $new_id);
+        $a_mapping->addMapping('Plugins/TestObjectRepository', ilTestRepositoryObjectPlugin::ID, $a_id, (string) $new_id);
     }
 }

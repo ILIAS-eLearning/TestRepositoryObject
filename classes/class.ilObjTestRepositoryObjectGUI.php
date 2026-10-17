@@ -1,264 +1,203 @@
 <?php
 
+declare(strict_types=1);
+
+use ILIAS\UI\Component\Input\Container\Form\Standard;
+
 /**
  * @ilCtrl_isCalledBy ilObjTestRepositoryObjectGUI: ilRepositoryGUI, ilAdministrationGUI, ilObjPluginDispatchGUI
  * @ilCtrl_Calls      ilObjTestRepositoryObjectGUI: ilPermissionGUI, ilInfoScreenGUI, ilObjectCopyGUI, ilCommonActionDispatcherGUI, ilExportGUI
  */
 class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
 {
-    public const LP_SESSION_ID = 'xtst_lp_session_state';
-    protected ilCtrl $ctrl;
-    protected ilTabsGUI $tabs;
-    public ilGlobalTemplateInterface $tpl;
-
-    protected function afterConstructor() : void
-    {
-        global $ilCtrl, $ilTabs, $tpl;
-        $this->ctrl = $ilCtrl;
-        $this->tabs = $ilTabs;
-        $this->tpl = $tpl;
-    }
-
+    public const string LP_SESSION_ID = 'xtst_lp_session_state';
     final public function getType() : string
     {
         return ilTestRepositoryObjectPlugin::ID;
     }
 
-    /**
-     * Handles all commmands of this class, centralizes permission checks
-     */
     public function performCommand(string $cmd) : void
     {
         switch ($cmd) {
-            case "editProperties":   // list all commands that need write permission here
-            case "updateProperties":
-            case "saveProperties":
-            case "showContent":   // list all commands that need read permission here
-            case "setStatusToCompleted":
-            case "setStatusToFailed":
-            case "setStatusToInProgress":
-            case "setStatusToNotAttempted":
-            default:
-                $this->checkPermission("read");
-                $this->$cmd();
+            case 'editProperties':
+            case 'saveProperties':
+            case 'addNews':
+            case 'updateOneNews':
+            case 'deleteOneNews':
+                $this->checkPermission('write');
                 break;
+            case 'showContent':
+            case 'setStatusToCompleted':
+            case 'setStatusToFailed':
+            case 'setStatusToInProgress':
+            case 'setStatusToNotAttempted':
+                $this->checkPermission('read');
+                break;
+            default:
+                $this->error->raiseError($this->lng->txt('unknown_command'), $this->error->WARNING);
+                return;
         }
+
+        $this->$cmd();
     }
 
-    /**
-     * After object has been created -> jump to this command
-     */
-    function getAfterCreationCmd() : string
+    public function getAfterCreationCmd() : string
     {
-        return "editProperties";
+        return 'editProperties';
     }
 
-    /**
-     * Get standard command
-     */
-    function getStandardCmd() : string
+    public function getStandardCmd() : string
     {
-        return "showContent";
+        return 'showContent';
     }
 
-//
-// DISPLAY TABS
-//
-
-    /**
-     * Set tabs
-     */
     protected function setTabs() : void
     {
-        global $ilCtrl, $ilAccess;
-
-        // tab for the "show content" command
-        if ($ilAccess->checkAccess("read", "", $this->object->getRefId())) {
-            $this->tabs->addTab("content", $this->txt("content"), $ilCtrl->getLinkTarget($this, "showContent"));
+        if ($this->access->checkAccess('read', '', $this->object->getRefId())) {
+            $this->tabs->addTab('content', $this->txt('content'), $this->ctrl->getLinkTarget($this, 'showContent'));
         }
 
-        // standard info screen tab
         $this->addInfoTab();
 
-        // a "properties" tab
-        if ($ilAccess->checkAccess("write", "", $this->object->getRefId())) {
+        if ($this->access->checkAccess('write', '', $this->object->getRefId())) {
             $this->tabs->addTab(
-                "properties",
-                $this->txt("properties"),
-                $ilCtrl->getLinkTarget($this, "editProperties")
+                'properties',
+                $this->txt('properties'),
+                $this->ctrl->getLinkTarget($this, 'editProperties')
             );
         }
 
-        // standard export tab
         $this->addExportTab();
-
-        // standard permission tab
         $this->addPermissionTab();
         $this->activateTab();
     }
 
-    /**
-     * Edit Properties. This commands uses the form class to display an input form.
-     */
     protected function editProperties() : void
     {
-        $this->tabs->activateTab("properties");
-        $form = $this->initPropertiesForm();
-        $this->addValuesToForm($form);
-        $this->tpl->setContent($form->getHTML());
+        $this->tabs->activateTab('properties');
+        $this->renderPropertiesForm($this->getPropertiesForm());
     }
 
-    protected function initPropertiesForm() : ilPropertyFormGUI
+    private function getPropertiesForm() : Standard
     {
-        $form = new ilPropertyFormGUI();
-        $form->setTitle($this->plugin->txt("obj_xtst"));
-
-        $title = new ilTextInputGUI($this->plugin->txt("title"), "title");
-        $title->setRequired(true);
-        $form->addItem($title);
-
-        $description = new ilTextInputGUI($this->plugin->txt("description"), "description");
-        $form->addItem($description);
-
-        $online = new ilCheckboxInputGUI($this->plugin->txt("online"), "online");
-        $form->addItem($online);
-
-        $form->setFormAction($this->ctrl->getFormAction($this, "saveProperties"));
-        $form->addCommandButton("saveProperties", $this->plugin->txt("update"));
-
-        return $form;
-    }
-
-    protected function addValuesToForm(ilPropertyFormGUI $form) : void
-    {
-        $form->setValuesByArray(array(
-            "title" => $this->object->getTitle(),
-            "description" => $this->object->getDescription(),
-            "online" => $this->object->isOnline(),
-        ));
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormAction($this, 'saveProperties'),
+            [
+                'title' => $this->ui_factory->input()->field()->text($this->txt('title'))
+                    ->withRequired(true)
+                    ->withValue($this->object->getTitle()),
+                'description' => $this->ui_factory->input()->field()->textarea($this->txt('description'))
+                    ->withValue($this->object->getDescription()),
+                'online' => $this->ui_factory->input()->field()->checkbox($this->txt('online'))
+                    ->withValue($this->getObject()->isOnline()),
+            ]
+        )->withSubmitLabel($this->txt('update'));
     }
 
     protected function saveProperties() : void
     {
-        $form = $this->initPropertiesForm();
-        $form->setValuesByPost();
-        if ($form->checkInput()) {
-            $this->fillObject($this->object, $form);
-            $this->object->update();
-            $this->tpl->setOnScreenMessage("success", $this->plugin->txt("update_successful"), true);
-            $this->ctrl->redirect($this, "editProperties");
+        $form = $this->getPropertiesForm()->withRequest($this->request);
+        $data = $form->getData();
+        if ($data === null) {
+            $this->renderPropertiesForm($form);
+            return;
         }
-        $this->tpl->setContent($form->getHTML());
+
+        $object = $this->getObject();
+        $object->setTitle($data['title']);
+        $object->setDescription($data['description']);
+        $object->setOnline($data['online']);
+        $object->update();
+        $this->tpl->setOnScreenMessage('success', $this->txt('update_successful'), true);
+        $this->ctrl->redirect($this, 'editProperties');
     }
 
     protected function showContent() : void
     {
-        global $ilToolbar, $ilCtrl;
-
-        /** @var ilToolbarGUI $ilToolbar */
-        $ilToolbar->addButton("Add News", $ilCtrl->getLinkTarget($this, "addNews"));
-        $ilToolbar->addButton("Add News (Lang Var)", $ilCtrl->getLinkTarget($this, "addNewsLangVar"));
-        $ilToolbar->addButton("Delete One", $ilCtrl->getLinkTarget($this, "deleteOneNews"));
-        $ilToolbar->addButton("Update One", $ilCtrl->getLinkTarget($this, "updateOneNews"));
-
-        $this->tabs->activateTab("content");
-
-        /** @var ilObjTestRepositoryObject $object */
-        $object = $this->object;
-
-        $form = new ilPropertyFormGUI();
-        $form->setTitle($object->getTitle());
-
-        $i = new ilNonEditableValueGUI($this->plugin->txt("title"));
-        $i->setInfo($object->getTitle());
-        $form->addItem($i);
-
-        $i = new ilNonEditableValueGUI($this->plugin->txt("description"));
-        $i->setInfo($object->getDescription());
-        $form->addItem($i);
-
-        $i = new ilNonEditableValueGUI($this->plugin->txt("online_status"));
-        $i->setInfo($object->isOnline() ? "Online" : "Offline");
-        $form->addItem($i);
-
+        $this->tabs->activateTab('content');
         global $ilUser;
+
         $progress = new ilLPStatusPlugin($this->object->getId());
         $status = $progress->determineStatus($this->object->getId(), $ilUser->getId());
-        $i = new ilNonEditableValueGUI($this->plugin->txt("lp_status"));
-        $i->setInfo($this->plugin->txt("lp_status_" . $status));
-        $form->addItem($i);
-
-        $i = new ilNonEditableValueGUI();
-        $i->setInfo(
-            "<a href='" . $this->ctrl->getLinkTarget($this, "setStatusToCompleted") . "'> " . $this->plugin->txt(
-                "set_completed"
+        $components = [
+            $this->ui_factory->panel()->standard(
+                $this->object->getTitle(),
+                $this->ui_factory->listing()->descriptive([
+                    $this->txt('title') => $this->object->getTitle(),
+                    $this->txt('description') => $this->object->getDescription(),
+                    $this->txt('online_status') => $this->getObject()->isOnline() ? $this->txt('online') : $this->txt('offline'),
+                    $this->txt('lp_status') => $this->txt('lp_status_' . $status),
+                ])
+            ),
+            $this->ui_factory->button()->standard(
+                $this->txt('set_completed'),
+                $this->ctrl->getLinkTarget($this, 'setStatusToCompleted')
+            ),
+            $this->ui_factory->button()->standard(
+                $this->txt('set_not_attempted'),
+                $this->ctrl->getLinkTarget($this, 'setStatusToNotAttempted')
+            ),
+            $this->ui_factory->button()->standard(
+                $this->txt('set_failed'),
+                $this->ctrl->getLinkTarget($this, 'setStatusToFailed')
+            ),
+            $this->ui_factory->button()->standard(
+                $this->txt('set_in_progress'),
+                $this->ctrl->getLinkTarget($this, 'setStatusToInProgress')
             )
-        );
-        $form->addItem($i);
+        ];
 
-        $i = new ilNonEditableValueGUI();
-        $i->setInfo(
-            "<a href='" . $this->ctrl->getLinkTarget($this, "setStatusToNotAttempted") . "'> " . $this->plugin->txt(
-                "set_not_attempted"
-            )
-        );
-        $form->addItem($i);
-
-        $i = new ilNonEditableValueGUI();
-        $i->setInfo(
-            "<a href='" . $this->ctrl->getLinkTarget($this, "setStatusToFailed") . "'> " . $this->plugin->txt(
-                "set_failed"
-            )
-        );
-        $form->addItem($i);
-
-        $i = new ilNonEditableValueGUI();
-        $i->setInfo(
-            "<a href='" . $this->ctrl->getLinkTarget($this, "setStatusToInProgress") . "'> " . $this->plugin->txt(
-                "set_in_progress"
-            )
-        );
-        $form->addItem($i);
-
-        $i = new ilNonEditableValueGUI($this->plugin->txt("important"));
-        $i->setInfo($this->plugin->txt("lp_status_info"));
-        $form->addItem($i);
-
-        $this->tpl->setContent($form->getHTML());
-    }
-
-    private function fillObject(ilObjTestRepositoryObject $object, ilPropertyFormGUI $form) : void
-    {
-        $object->setTitle($form->getInput('title'));
-        $object->setDescription($form->getInput('description'));
-        $object->setOnline($form->getInput('online'));
-    }
-
-    /**
-     * We need this method if we can't access the tabs otherwise...
-     */
-    private function activateTab() : void
-    {
-        $next_class = $this->ctrl->getCmdClass();
-
-        switch ($next_class) {
-            case 'ilexportgui':
-                $this->tabs->activateTab("export");
-                break;
+        if ($this->access->checkAccess('write', '', $this->object->getRefId())) {
+            $components[] = $this->ui_factory->panel()->standard(
+                $this->txt('add_news'),
+                $this->getNewsForm()
+            );
         }
+
+        foreach ($this->getNewsItems() as $news_item) {
+            $components[] = $this->ui_factory->panel()->standard(
+                $news_item->getTitle(),
+                $this->ui_factory->listing()->descriptive([
+                    $this->txt('news_content') => $news_item->getContent(),
+                ])
+            );
+
+            if ($this->access->checkAccess('write', '', $this->object->getRefId())) {
+                $components[] = $this->getNewsForm($news_item);
+                $components[] = $this->getDeleteNewsForm($news_item);
+            }
+        }
+
+        $this->tpl->setContent($this->ui_renderer->render($components));
     }
 
-    private function setStatusToCompleted() : void
+    protected function addNews() : void
+    {
+        $this->storeNews($this->getNewsForm(), new ilNewsItem());
+    }
+
+    protected function updateOneNews() : void
+    {
+        $news_item = $this->getRequestedNewsItem();
+        $this->storeNews($this->getNewsForm($news_item), $news_item);
+    }
+
+    protected function deleteOneNews() : void
+    {
+        $news_item = $this->getRequestedNewsItem();
+        $form = $this->getDeleteNewsForm($news_item)->withRequest($this->request);
+        if ($form->getData() === null) {
+            $this->showContent();
+            return;
+        }
+
+        $news_item->delete();
+        $this->ctrl->redirect($this, $this->getStandardCmd());
+    }
+
+    protected function setStatusToCompleted() : void
     {
         $this->setStatusAndRedirect(ilLPStatus::LP_STATUS_COMPLETED_NUM);
-    }
-
-    private function setStatusAndRedirect(int $status) : void
-    {
-        global $ilUser;
-        $_SESSION[self::LP_SESSION_ID] = $status;
-        ilLPStatusWrapper::_updateStatus($this->object->getId(), $ilUser->getId());
-        $this->ctrl->redirect($this, $this->getStandardCmd());
     }
 
     protected function setStatusToFailed() : void
@@ -276,77 +215,109 @@ class ilObjTestRepositoryObjectGUI extends ilObjectPluginGUI
         $this->setStatusAndRedirect(ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM);
     }
 
-
-    //
-    // News for plugin
-    //
-
-    protected function addNews() : void
+    private function setStatusAndRedirect(int $status) : void
     {
-        global $ilCtrl, $DIC;
+        global $ilUser;
 
-        $ns = $DIC->news();
-
-        $context = $ns->contextForRefId($this->object->getRefId());
-        $item = $ns->item($context);
-        $item->setTitle("Hello World");
-        $item->setContent("This is the news.");
-        $ns->data()->save($item);
-
-        $this->tpl->setOnScreenMessage("info", "News created", true);
-        $ilCtrl->redirect($this, "showContent");
+        $_SESSION[self::LP_SESSION_ID] = $status;
+        ilLPStatusWrapper::_updateStatus($this->object->getId(), $ilUser->getId());
+        $this->ctrl->redirect($this, $this->getStandardCmd());
     }
 
-    protected function addNewsLangVar() : void
+    private function getNewsForm(?ilNewsItem $news_item = null) : Standard
     {
-        global $ilCtrl, $DIC;
-
-        $ns = $DIC->news();
-
-        $context = $ns->contextForRefId($this->object->getRefId());
-        $item = $ns->item($context);
-        $item->setTitle("news_title");
-        $item->setContentTextIsLangVar(true);
-        $item->setContentIsLangVar(true);
-        $item->setContent("news_content");
-        $ns->data()->save($item);
-
-        $this->tpl->setOnScreenMessage("info", "News created", true);
-        $ilCtrl->redirect($this, "showContent");
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->getNewsFormAction($news_item === null ? 'addNews' : 'updateOneNews', $news_item?->getId()),
+            [
+                'title' => $this->ui_factory->input()->field()->text($this->txt('news_title'))
+                    ->withRequired(true)
+                    ->withValue($news_item?->getTitle() ?? ''),
+                'content' => $this->ui_factory->input()->field()->textarea($this->txt('news_content'))
+                    ->withRequired(true)
+                    ->withValue($news_item?->getContent() ?? ''),
+            ]
+        )->withSubmitLabel($this->txt($news_item === null ? 'save' : 'update'));
     }
 
-    protected function deleteOneNews() : void
+    private function getDeleteNewsForm(ilNewsItem $news_item) : Standard
     {
-        global $ilCtrl, $DIC;
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->getNewsFormAction('deleteOneNews', $news_item->getId()),
+            []
+        )->withSubmitLabel($this->txt('delete'));
+    }
 
-        $ns = $DIC->news();
+    private function getNewsFormAction(string $command, ?int $news_id = null) : string
+    {
+        if ($news_id !== null) {
+            $this->ctrl->setParameter($this, 'news_id', $news_id);
+        }
+        $action = $this->ctrl->getFormAction($this, $command);
+        $this->ctrl->clearParameters($this);
 
-        $context = $ns->contextForRefId($this->object->getRefId());
-        $items = $ns->data()->getNewsOfContext($context);
-        if ($n = current($items)) {
-            $ns->data()->delete($n);
-            $this->tpl->setOnScreenMessage("info", "News deleted", true);
+        return $action;
+    }
+
+    private function storeNews(Standard $form, ilNewsItem $news_item) : void
+    {
+        global $ilUser;
+
+        $form = $form->withRequest($this->request);
+        $data = $form->getData();
+        if ($data === null) {
+            $this->showContent();
+            return;
         }
 
-        $ilCtrl->redirect($this, "showContent");
-    }
-
-    protected function updateOneNews() : void
-    {
-        global $ilCtrl, $DIC;
-
-        $ns = $DIC->news();
-
-        $context = $ns->contextForRefId($this->object->getRefId());
-        $items = $ns->data()->getNewsOfContext($context);
-        if ($n = current($items)) {
-            $n->setContent("News content changed at " . date("d.m.Y H:m:s"));
-            $n->setContentTextIsLangVar(false);
-            $ns->data()->save($n);
-            $this->tpl->setOnScreenMessage("info", "News updated", true);
+        $news_item->setTitle($data['title']);
+        $news_item->setContent($data['content']);
+        if ($news_item->getId() === 0) {
+            $news_item->setContext($this->object->getId(), $this->object->getType());
+            $news_item->setUserId($ilUser->getId());
+            $news_item->setVisibility(NEWS_USERS);
+            $news_item->create();
+        } else {
+            $news_item->setUpdateUserId($ilUser->getId());
+            $news_item->update();
         }
 
-        $ilCtrl->redirect($this, "showContent");
+        $this->ctrl->redirect($this, $this->getStandardCmd());
     }
 
+    private function getNewsItems() : array
+    {
+        return ilNewsItem::getNewsOfContext($this->object->getId(), $this->object->getType());
+    }
+
+    private function getRequestedNewsItem() : ilNewsItem
+    {
+        $news_id = (int) ($this->request->getQueryParams()['news_id'] ?? 0);
+        $news_item = new ilNewsItem($news_id);
+        if ($news_id <= 0 || $news_item->getContextObjId() !== $this->object->getId()
+            || $news_item->getContextObjType() !== $this->object->getType()) {
+            throw new ilException('News item does not belong to this repository object.');
+        }
+
+        return $news_item;
+    }
+
+    private function renderPropertiesForm(Standard $form) : void
+    {
+        $this->tpl->setContent($this->ui_renderer->render(
+            $this->ui_factory->panel()->standard($this->txt('properties'), $form)
+        ));
+    }
+
+    private function activateTab() : void
+    {
+        if ($this->ctrl->getCmdClass() === 'ilexportgui') {
+            $this->tabs->activateTab('export');
+        }
+    }
+
+    public function getObject() : ?ilObjTestRepositoryObject
+    {
+        assert($this->object instanceof ilObjTestRepositoryObject);
+        return $this->object;
+    }
 }
